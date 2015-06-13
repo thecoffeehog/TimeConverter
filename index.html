@@ -6,7 +6,7 @@
 
 	<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css" />
 	<link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
-    <link rel="stylesheet" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" href="css/bootstrap.min.css" />
 	<link rel="stylesheet" href="css/jquery-ui.css">
 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
 	<script src="js/jquery-1.10.2.js"></script>
@@ -20,8 +20,7 @@
 	<script>
 	
 	var geocoder;
-	var count  = -1;
-	var count1 = 0;
+	var count  = 0;
 	var flag = -1;
 	var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun","Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 	var weekNames = ["Sun", "Mon" , "Tue" , "Wed" , "Thu" , "Fri", "Sat"];
@@ -33,58 +32,100 @@
 	var count2 = 0;
 	var url1;
 	var url2;
+
 	function initialize() {
 
-      //Adds Google Places Auto Complete to the city fields.
+      //Enables the auto complete for city 1 field
       
       autocompleteCityOne = new google.maps.places.Autocomplete( (document.getElementById('city1')), { types: ['(cities)'] });
-
-      autocompleteCityTwo = new google.maps.places.Autocomplete( (document.getElementById('city2')), { types: ['(cities)'] });
       
       google.maps.event.addListener(autocompleteCityOne, 'place_changed', function() {
       });
-      
-      google.maps.event.addListener(autocompleteCityTwo, 'place_changed', function() {
-      });
-    
+
     }
 
     function initializeConversion() {
-    	//Gets the coordinates of both cities
-    	
-    	if(document.getElementById('datenh1').value.length >0 && document.getElementById('datenh2').value.length>0 ) {
-    		alert("Please choose date and time of one of the cities!");
-    		location.reload();
-    	}
-    	if (document.getElementById('datenh1').value.length == 0)
-    		setValueOfDateTwo();
-    	else
-    		setValueOfDateOne();
+	
+		//Case when user choose the time of both cities    	
+		if(document.getElementById('datenh1').value.length >0 && document.getElementById('datenh2').value.length>0 ) {
+	    	
+	    	alert("Please Choose Date and Time of one of the city");	
+	    	location.reload();
 
-    	getCoordinates(document.getElementById('city1').value);
-    	getCoordinates(document.getElementById('city2').value);
+	    }
 
-    	
+	    //Case when user didn't choose the time of any city
+		if (document.getElementById('datenh1').value.length == 0 && document.getElementById('datenh2').value.length == 0 ) {
+			
+			alert("Please Choose Date and Time of one of the city");
+			location.reload();
+
+		}
+
+		//Gets the date from hidden fields and converts it to the format which is required
+	    if (document.getElementById('datenh1').value.length == 0) //Finds the non-empty field
+	    	setValueOfDateTwo();
+	    else
+	    	setValueOfDateOne();
+		
+		//Get the value from the fields
+	    cityOneString = document.getElementById('city1').value;
+		cityTwoString = document.getElementById('city2').value; 
+		
+		//Logging Statements
+		console.log("City 1: "+cityOneString);
+	  	console.log("City 2: "+cityTwoString);
+		
+		//Gets the coordinates of both cities
+		getCoordinates(cityOneString);
+	    getCoordinates(cityTwoString);
     }
 
     function setValueOfDateOne() {
+
+    	//Gets the value from non-hidden field
     	datenh1 = document.getElementById('datenh1').value;
+    	
+    	//Logging Statement
+    	console.log("Choosed Date 1:"+datenh1);
+
+    	//Converts the date to h:mm a ddd DD MMM YYYY format for further conversion 
     	var momentDate1= moment( datenh1, "h:mm a ddd DD MMM YYYY" );
-    	///06/05/2015 2:56 PM
+    	
+    	//Converts the date to DD/MM/YYYY h:mm PM format for further conversion to JavaScript date
     	date1 = momentDate1.month()+1 + "/" + momentDate1.date() + "/" + momentDate1.year() +" "+ momentDate1.hour() +":"+momentDate1.minutes();
-    	console.log("Date1:"+date1);
+    	
+    	//Logging Statement
+    	console.log("Converted Date 1:"+date1);
+    	
+    	//Sets the value of hidden field to the converted value from non-hidden field
     	document.getElementById('date1').value=date1;
-    	console.log("date1:"+document.getElementById('date1').value);
+    	
+    	//Sets the value of date2 as empty, because both the date fields cannot have dates
     	document.getElementById('date2').value = "";
 
     }
     function setValueOfDateTwo() {
+    	
+    	//Gets the value from non-hidden field
     	datenh2 = document.getElementById('datenh2').value;
+
+    	//Logging Statement
+    	console.log("Choosed Date 2:"+datenh2);
+
+    	//Converts the date to h:mm a ddd DD MMM YYYY format for further conversion 
     	var momentDate2= moment( datenh2, "h:mm a ddd DD MMM YYYY" );
-    	///06/05/2015 2:56 PM
+
+    	//Converts the date to DD/MM/YYYY h:mm PM format for further conversion to JavaScript Date
     	date2 = momentDate2.month()+1 + "/" + momentDate2.date() + "/" + momentDate2.year() +" "+ momentDate2.hour() +":"+momentDate2.minutes() ;
+    	
+    	//Logging Statement
+    	console.log("Converted Date 2:"+date2);    	
+    	
+    	//Sets the value of hidden field to the converted value from non-hidden field
     	document.getElementById('date2').value=date2;
-    	console.log("date2:"+document.getElementById('date2').value);
+    	
+    	//Sets the value of date1 as empty, because both the date fields cannot have dates
     	document.getElementById('date1').value = "";
 
     }
@@ -94,69 +135,74 @@
     	//Gets the coordinates of the city passed
 
 		var address = city;
-		var count=0;
 		
 		geocoder = new google.maps.Geocoder();
 
+		//Gets the co-ordinates of the city from Google Places Geocoding API
 		geocoder.geocode( { 'address': address}, function(results, status) {
 
 			if (status == google.maps.GeocoderStatus.OK) {
-
-				console.log(results[0].geometry.location.A);
-				console.log(results[0].geometry.location.F);
-
-				longitude=results[0].geometry.location.A;
-				latitude=results[0].geometry.location.F;
 				
-				generateRequestURL(latitude,longitude);
+				//Logging Statement
+				console.log("Latitude: " + results[0].geometry.location.A);
+				console.log("Longitude: " + results[0].geometry.location.F);
 
+				//Stores the co-ordinates
+				latitude=results[0].geometry.location.A;
+				longitude=results[0].geometry.location.F;
+				
+				//Generates the request URL for getting the offset
+				generateRequestURL(latitude,longitude);
+				
 			} else {
 				alert('Geocode was not successful for the following reason: ' + status);
 			}
+
 		});	
 	}
 
 	function generateRequestURL(latitude, longitude) {
-		//Generates the URL needed to connect to the API
+
 		var timestamp;
 		var apiKey = "AIzaSyB4bGs5nvF2cvmCrTm77fv_Mv0XiKqKORY";
-		//var myDate = new Date(document.getElementById('date1').value);
-		//timestamp2 = Math.round(myDate.getTime()/1000.0);
 
-		if ( document.getElementById('date1').value.length != 0 && document.getElementById('date2').value.length != 0 ) {
-			flag = -1;
-		}
-		if( document.getElementById('date1').value.length == 0) {
-				
-				if( document.getElementById('date2').value.length == 0 && count1 == 1) {
-					flag = -1;
-					alert("Please choose date and time of one of the cities!");
-					location.reload();
-				}
-				else {
+		//Does this check only on the first call for  generating URL 
+		if(count == 0) {
+
+			//Finds the empty date field and sets the required flags and status
+
+			if( document.getElementById('date1').value.length == 0 ) {
 					flag = 1;
 					statusOfCity[1] = 1;
-				}
-		}
-		else {
+			}
+			else {
 
-			flag=0;
-			statusOfCity[0] = 1;
+					flag=0;
+					statusOfCity[0] = 1;
+			}
+
 		}
-		console.log(flag);
-		console.log("StatusOfCity 0 : "+statusOfCity[0]);
-		console.log("StatusOfCity 1 : "+statusOfCity[1]);
+		
 		if(flag == 0 ) {
 				
+				//Makes a JavaScript date
 				var myDate = new Date(document.getElementById('date1').value);
 				
+				//Gets the Unix/Epoch timestamp
 				timestamp = Math.round(myDate.getTime()/1000.0);
+
+				//Logging statement
 				console.log("Date: "+ document.getElementById('date1').value + "Timestamp: "+timestamp);
 				
-				var calculatedLocation = longitude + "," + latitude;
+				var calculatedLocation = latitude + "," + longitude;
+				
+				//Generates the URL using all the calculated parameters
 				var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + calculatedLocation + "&timestamp=" + timestamp + "&key=" + apiKey;
-				console.log("Count: "+count1);
-				if(statusOfCity[count1]) {
+				
+				//Logging statement
+				console.log("Count: "+count);
+
+				if(statusOfCity[count] == 1) {
 					url1=url;
 				}
 				else {
@@ -165,38 +211,55 @@
 			}
 
 		if(flag == 1 ) {
-				
+
+				//Makes a JavaScript date
 				var myDate = new Date(document.getElementById('date2').value);
 				
+				//Gets the Unix/Epoch timestamp
 				timestamp = Math.round(myDate.getTime()/1000.0);
+				
+				//Logging statement
 				console.log("Date: "+ document.getElementById('date2').value + "Timestamp: "+timestamp);
 				
-				var calculatedLocation = longitude + "," + latitude;
+				var calculatedLocation = latitude + "," + longitude;
+				
+				//Generates the URL using all the calculated parameters
 				var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + calculatedLocation + "&timestamp=" + timestamp + "&key=" + apiKey;
-				console.log("Count: "+count1);
-				if(statusOfCity[count1]) {
-					console.log("URL 1 Selected");
+				
+				//Logging statement
+				console.log("Count: "+count);
+
+				if(statusOfCity[count] == 1) {
 					url1=url;
 				}
 				else {
 					url2=url;
 				}
+
 			}
-		console.log("Entered City URL: "+url1);
-    	console.log("Blank City URL: "+url2);
-		if(count1==1) {
+
+		if(count==1) {
+			
+			//Logging statement
+			console.log("Entered City URL: "+url1);
+    		console.log("Blank City URL: "+url2);
+
 			getConvertedTime(timestamp, url1, url2, flag);
-			count1=-1;
+			
+			count=-1;
 			flag=-1;
+			
 			statusOfCity[0]=0;
 			statusOfCity[1]=0;
+			
 			document.getElementById('date1').value=0;
 			document.getElementById('date2').value=0;
 		}
-		count1++;	
+		count++;	
 	}
 
     function sendRequest(url) {
+    	
     	var Httpreq = new XMLHttpRequest(); // a new request
     	
     	Httpreq.open("GET",url,false);
@@ -323,8 +386,8 @@
 		</div>
 		<div class="row">
 			<div class="col-md-12">
-				<p id="enterdate"> Time <input id = "datenh2" placeholder="Choose time in city two" type = "text" value = "" />
-				in <input id="city2" placeholder="Enter city two" type="text" value="Pune" autocomplete="off"></input></p>
+				<p id="enterdate"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = "" />
+				in <input id="city2" type="text" value="Pune" autocomplete="off" readonly></input></p>
 				<input id="date2" type="hidden"></input>
 				<input id = "submit" align = "center" type = "button" value ="Submit" onclick = "initializeConversion()" />
 				<p id = "converted"></p>
@@ -332,13 +395,14 @@
 		</div>
 	</div>
 	<script>
+			//JQuery code for the date time picker
 			$(function () {
+				//Enables the date time picker for hidden field of date for city 1 and 2 respectively
 				$('#datenh1').datetimepicker( {
 					format: 'h:mm A ddd DD MMM YYYY'
 				});
 				$('#datenh2').datetimepicker( {
 					format: 'h:mm A ddd DD MMM YYYY'
-					//06/05/2015 2:56 PM
 				});
 			});
 	</script>
