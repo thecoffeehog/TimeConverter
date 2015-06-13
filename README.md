@@ -1,2 +1,12 @@
 # TimeConverter-v1
-A time conversion tool. You can use this tool to get the time of any city in the world, the only inputs required are the city whose time and date you already know, the time and date of that city and the city whose time and date you want to find. The code even works with daylight savings.
+You can find the time of any city in the world with respect to the time of your city, or the city whose time you already know.
+
+Basically it needs only three inputs:
+
+1) Name of your city or any city whose time you already know
+
+2) Time of that city
+
+3) Name of the city whose time you need to find
+
+This tool uses Google Places API ( https://developers.google.com/places/ ) for all the conversions.
