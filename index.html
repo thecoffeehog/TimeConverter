@@ -44,13 +44,24 @@
 
     }
 
+    function resetFields() {
+    	document.getElementById('datenh1').value = "";
+    	document.getElementById('datenh2').value = "";
+    }
     function initializeConversion() {
-	
+		
+		//When user didn't enter the value of city 1
+		if(document.getElementById('city1').value.length == 0) {
+			
+			alert("Please enter the city whose time you want to check");
+	    	return;
+		}
 		//Case when user choose the time of both cities    	
 		if(document.getElementById('datenh1').value.length >0 && document.getElementById('datenh2').value.length>0 ) {
 	    	
-	    	alert("Please Choose Date and Time of one of the city");	
-	    	location.reload();
+	    	alert("Please Choose Date and Time of one of the city");
+	    	resetFields();
+	    	return;
 
 	    }
 
@@ -58,7 +69,7 @@
 		if (document.getElementById('datenh1').value.length == 0 && document.getElementById('datenh2').value.length == 0 ) {
 			
 			alert("Please Choose Date and Time of one of the city");
-			location.reload();
+	    	return;
 
 		}
 
