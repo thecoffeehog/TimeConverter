@@ -9,4 +9,4 @@ Basically it needs only three inputs:
 
 3) Name of the city whose time you need to find
 
-This tool uses Google Places API ( https://developers.google.com/places/ ) for all the conversions.
+This tool uses Google Places API ( https://developers.google.com/places/ ) for all the conversions
