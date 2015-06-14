@@ -257,9 +257,11 @@
 
 			getConvertedTime(timestamp, url1, url2, flag);
 			
+			//Reset flag and count 
 			count=-1;
 			flag=-1;
 			
+			//Reset field status
 			statusOfCity[0]=0;
 			statusOfCity[1]=0;
 			
@@ -271,11 +273,14 @@
 
     function sendRequest(url) {
     	
+
     	var Httpreq = new XMLHttpRequest(); // a new request
     	
+    	//Open GET request
     	Httpreq.open("GET",url,false);
     	Httpreq.send(null);
     	
+    	//Store the result and parse it
     	var result = Httpreq.responseText;
     	var jsonObj = JSON.parse(result);
 
@@ -283,7 +288,7 @@
     }
 
     function addZero(i) {
-		
+		//TO add zero add prefix position
 		if (i < 10) {
 			i = "0" + i;
 		}
@@ -292,39 +297,59 @@
 	}
 
     function getConvertedTime(timestamp, url1, url2, flag) {
-    	
+    	//url1 is the entered cities url and url2 is the url of non-entered city
     	jsonObjOfEntered = sendRequest(url1);
     	jsonObjOfNonEntered = sendRequest(url2);
+    	
+    	//Logging Statement
     	console.log("Entered City URL: "+url1);
     	console.log("Blank City URL: "+url2);
+    	
+    	//Calculate the offset
     	var cityOneOffset = jsonObjOfEntered.dstOffset + jsonObjOfEntered.rawOffset; 
+    	
+    	//Logging Statement
     	console.log("City One Offset:"+cityOneOffset);
+
+    	//Converted EPOCH timestamp
     	var convertedTimeStamp = timestamp + jsonObjOfNonEntered.dstOffset + jsonObjOfNonEntered.rawOffset - cityOneOffset;
     	var convertedTime = new Date(convertedTimeStamp*1000);
 
+    	//Logging Statement
     	console.log("Time:"+convertedTime);
+		
 		var suffix = "AM";
-		var hours = convertedTime.getHours();
+		var hours = convertedTime.getHours(); //JS function to get hours from a string of date and time
 
+		//Calculates the meridians
 		if ( hours >= 12) {
 			suffix = "PM";
 			hours = hours-12;
 		}
-		//8:37 pm Fri 05 Jun 2015
+
+		//Converts the time to h:mm pm DDD dd MMM yyyy format
 		var fullConvertedTime = ( hours+ ":" + addZero(convertedTime.getMinutes() ) + " " +
 			suffix + " " + weekNames [ convertedTime.getDay() ] + " " + addZero(convertedTime.getDate() ) + " " + monthNames [ convertedTime.getMonth() ] + " " + convertedTime.getFullYear()  
 			);
-	//	var fullConvertedTimeForField = addZero(convertedTime.getMonth()+1) + "/" + addZero(convertedTime.getDay()) + "/" + convertedTime.getFullYear() + " " + hours + ":" +addZero(convertedTime.getMinutes()) + " " + suffix;
+
+		//Logging Statements
 		console.log("Flag: "+flag);
 		console.log("Full Converted Time: "+fullConvertedTime);
+		
+		//Sets the value with calculated time
 		if(flag == 0) {
+			
 			document.getElementById('datenh2').value = fullConvertedTime;
-			display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag);
+			
+			display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag);//To display the offset difference in human readable fashion
+			
 			cityOneOffset=0;
 			flag=-1;
 		}
 		else if (flag == 1) {
+			
 			document.getElementById('datenh1').value = fullConvertedTime;
+			
 			display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag);
 			
 			cityOneOffset=0;
@@ -335,10 +360,14 @@
     function display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag) {
     		
     		var diffInOffset = (jsonObjOfNonEntered.dstOffset + jsonObjOfNonEntered.rawOffset - cityOneOffset)/3600;
+			
+			//Logging Statement
 			console.log("diffInOffset"+diffInOffset );		
-			var fractionOfDiffInOffset = diffInOffset % 1;
+			
+			var fractionOfDiffInOffset = diffInOffset % 1;//Stores the fractional part of diff in offset
 			var suffixZero= "";	
-			console.log(fractionOfDiffInOffset);
+			
+			//Converts the fractional part to time format
 			if ( fractionOfDiffInOffset == 0 ) {
 				var newFractionOfDiffInOffset = fractionOfDiffInOffset;
 			}
@@ -352,13 +381,13 @@
 			else if ( fractionOfDiffInOffset == -0.75 || fractionOfDiffInOffset == 0.75 ) {
 				var newFractionOfDiffInOffset = 0.45;				
 			}
-		//	if(fractionOfDiffInOffset < 0 ) {
-		//		fractionOfDiffInOffset = -fractionOfDiffInOffset;
-		//	}
-			//Pune is +4:30 of London
+
+			//Displays the diff in this format : Pune is +4:30 of London
+			
 			if(diffInOffset<0) {
 				var sign = "-";
 			}
+
 			diffInOffset = Math.abs(diffInOffset) - Math.abs(fractionOfDiffInOffset) + newFractionOfDiffInOffset;
 			if(flag==0)  {
 				if(sign == "-") {
