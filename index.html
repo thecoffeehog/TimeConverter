@@ -438,11 +438,18 @@
 			//JQuery code for the date time picker
 			$(function () {
 				//Enables the date time picker for hidden field of date for city 1 and 2 respectively
+				//$('#datenh1').datetimepicker( {
+				//	
+			//	});
 				$('#datenh1').datetimepicker( {
-					format: 'h:mm A ddd DD MMM YYYY'
+					format: 'h:mm A ddd DD MMM YYYY',
+					stepping: '30',
+					sideBySide: true
 				});
 				$('#datenh2').datetimepicker( {
-					format: 'h:mm A ddd DD MMM YYYY'
+					format: 'h:mm A ddd DD MMM YYYY',
+					stepping: '30',
+					sideBySide: true
 				});
 			});
 	</script>
