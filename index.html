@@ -63,11 +63,11 @@
     function initializeConversion() {
 		
 		//When user didn't enter the value of city 1
-		if(document.getElementById('city1').value.length == 0) {
+		//if(document.getElementById('city1').value.length == 0) {
 			
-			alert("Please enter the city whose time you want to check");
-	    	return;
-		}
+		//	alert("Please enter the city whose time you want to check");
+	    //	return;
+		//}
 		//Case when user choose the time of both cities    	
 		//if(document.getElementById('datenh1').value.length >0 && document.getElementById('datenh2').value.length>0 ) {
 	    	
@@ -78,12 +78,12 @@
 	    //}
 
 	    //Case when user didn't choose the time of any city
-		if (document.getElementById('datenh1').value.length == 0 && document.getElementById('datenh2').value.length == 0 ) {
+		//if (document.getElementById('datenh1').value.length == 0 && document.getElementById('datenh2').value.length == 0 ) {
 			
-			alert("Please Choose Date and Time of one of the city");
-	    	return;
+		//	alert("Please Choose Date and Time of one of the city");
+	    //	return;
 
-		}
+		//}
 
 		//Gets the date from hidden fields and converts it to the format which is required
 	    if (document.getElementById('datenh1').value.length == 0) //Finds the non-empty field
@@ -431,14 +431,14 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-12">
-				<p id="enterdate"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = "" onChange = "initializationCheck()"/>
-				in <input id="city1" placeholder="Enter city one" type="text" autocomplete="off" onChange = "initializationCheck()"></input></p>
+				<p id="enterdate"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = "" onfocusout= "initializationCheck()"/>
+				in <input id="city1" placeholder="Enter city one" type="text" value="" autocomplete="off" onfocusout= "initializationCheck()"></input></p>
 				<input id="date1" type="hidden"></input>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-md-12">
-				<p id="enterdate"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = "" onChange = "initializationCheck()"/>
+				<p id="enterdate"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = "" onfocusout=  "initializationCheck()"/>
 				in <input id="city2" type="text" value="Pune" autocomplete="off" readonly></input></p>
 				<input id="date2" type="hidden"></input>
 				<!--<input id = "submit" align = "center" type = "button" value ="Submit" onclick = "initializeConversion()" />-->
