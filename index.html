@@ -32,7 +32,9 @@
 	var count2 = 0;
 	var url1;
 	var url2;
-
+	var d1 = d1;
+	var d2 = d2;
+	var c1 = c1;
 	function initialize() {
 
       //Enables the auto complete for city 1 field
@@ -49,14 +51,54 @@
     	document.getElementById('datenh2').value = "";
     }
 
-    function initializationCheck() {
-    	if(document.getElementById('datenh1').value.length>0 && document.getElementById('city1').value.length>0 && document.getElementById('city2').value.length>0 && document.getElementById('datenh2').value.length == 0) {
+    function initializationCheck(id) {
+
+    	if( document.getElementById('datenh1').value.length > 0 && document.getElementById('city1').value.length > 0 && document.getElementById('city2').value.length > 0 &&
+    	 document.getElementById('datenh2').value.length == 0 ) {
+    		
     		console.log("Initializing Conversion");
+    		d1=0;
     		initializeConversion();
     	}
-    	else if(document.getElementById('datenh2').value.length>0 && document.getElementById('city1').value.length>0 && document.getElementById('city2').value.length>0 && document.getElementById('datenh1').value.length == 0) {
+    	else if( document.getElementById('datenh2').value.length > 0 && 
+    		document.getElementById('city1').value.length > 0 && document.getElementById('city2').value.length > 0 
+    		&& document.getElementById('datenh1').value.length == 0 ) {
+    		
     		console.log("Initializing Conversion");
+    		d2=0;
     		initializeConversion();	
+
+    	}
+    	else if( document.getElementById('date1').value.length > 0 &&
+    	 document.getElementById('city1').value.length > 0 && document.getElementById('city2').value.length>0 
+    	 && document.getElementById('date2').value.length == 0) {
+
+    		console.log("Initializing Conversion");
+    		initializeConversion();
+
+    	}
+
+    	else if( document.getElementById('date2').value.length > 0 && document.getElementById('city1').value.length > 0 && document.getElementById('city2').value.length > 0 && 
+    		document.getElementById('date1').value.length == 0) {
+    		
+    		console.log("Initializing Conversion");
+    		initializeConversion();
+
+    	}
+    	else if( id == d2 && document.getElementById('datenh2').value.length > 0 && 
+    		document.getElementById('city1').value.length > 0 && document.getElementById('city2').value.length > 0) {
+    		
+    		console.log("Initializing Conversion");	
+    		document.getElementById('datenh1').value="";
+    		initializeConversion();
+    	
+    	}
+    	else if( id == d1 && document.getElementById('datenh1').value.length > 0 && document.getElementById('city1').value.length > 0 && document.getElementById('city2').value.length > 0) {
+    		
+    		console.log("Initializing Conversion");	
+    		document.getElementById('datenh2').value="";
+    		initializeConversion();
+
     	}
     }
 
@@ -353,7 +395,7 @@
 			
 			document.getElementById('datenh2').value = fullConvertedTime;
 			
-			display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag);//To display the offset difference in human readable fashion
+			display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag);//To display the offset difference in human readable fashion	
 			
 			cityOneOffset=0;
 			flag=-1;
@@ -371,58 +413,58 @@
 
     function display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag) {
     		
-    		var diffInOffset = (jsonObjOfNonEntered.dstOffset + jsonObjOfNonEntered.rawOffset - cityOneOffset)/3600;
-			
-			//Logging Statement
-			console.log("diffInOffset"+diffInOffset );		
-			
-			var fractionOfDiffInOffset = diffInOffset % 1;//Stores the fractional part of diff in offset
-			var suffixZero= "";	
-			
-			//Converts the fractional part to time format
-			if ( fractionOfDiffInOffset == 0 ) {
-				var newFractionOfDiffInOffset = fractionOfDiffInOffset;
-			}
-			else if ( fractionOfDiffInOffset == -0.5 || fractionOfDiffInOffset == 0.5  ) {
-				suffixZero = "0";
-				var newFractionOfDiffInOffset = 0.30;
-			}
-			else if ( fractionOfDiffInOffset == -0.25 || fractionOfDiffInOffset == 0.25 ) {
-				var newFractionOfDiffInOffset = 0.15;
-			}
-			else if ( fractionOfDiffInOffset == -0.75 || fractionOfDiffInOffset == 0.75 ) {
-				var newFractionOfDiffInOffset = 0.45;				
-			}
+		var diffInOffset = (jsonObjOfNonEntered.dstOffset + jsonObjOfNonEntered.rawOffset - cityOneOffset)/3600;
+		
+		//Logging Statement
+		console.log("diffInOffset"+diffInOffset );		
+		
+		var fractionOfDiffInOffset = diffInOffset % 1;//Stores the fractional part of diff in offset
+		var suffixZero= "";	
+		
+		//Converts the fractional part to time format
+		if ( fractionOfDiffInOffset == 0 ) {
+			var newFractionOfDiffInOffset = fractionOfDiffInOffset;
+		}
+		else if ( fractionOfDiffInOffset == -0.5 || fractionOfDiffInOffset == 0.5  ) {
+			suffixZero = "0";
+			var newFractionOfDiffInOffset = 0.30;
+		}
+		else if ( fractionOfDiffInOffset == -0.25 || fractionOfDiffInOffset == 0.25 ) {
+			var newFractionOfDiffInOffset = 0.15;
+		}
+		else if ( fractionOfDiffInOffset == -0.75 || fractionOfDiffInOffset == 0.75 ) {
+			var newFractionOfDiffInOffset = 0.45;				
+		}
 
-			//Displays the diff in this format : Pune is +4:30 of London
-			
-			if(diffInOffset<0) {
-				var sign = "-";
-			}
+		//Displays the diff in this format : Pune is +4:30 of London
+		
+		if(diffInOffset<0) {
+			var sign = "-";
+		}
 
-			diffInOffset = Math.abs(diffInOffset) - Math.abs(fractionOfDiffInOffset) + newFractionOfDiffInOffset;
-			if(flag==0)  {
-				if(sign == "-") {
-					document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
-														+" of " + document.getElementById('city2').value;		
-				}
-				else {
-					document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
-														+ " of " + document.getElementById('city1').value;	
-				}
-				
+		diffInOffset = Math.abs(diffInOffset) - Math.abs(fractionOfDiffInOffset) + newFractionOfDiffInOffset;
+		if(flag==0)  {
+			if(sign == "-") {
+				document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+" of " + document.getElementById('city2').value;		
 			}
-			if(flag==1) {
-				if(sign == "-") {
-					document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
-														+" of " + document.getElementById('city1').value;	
-				}
-				else {
-					document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
-														+" of " + document.getElementById('city2').value;	
-				}
-				
+			else {
+				document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+ " of " + document.getElementById('city1').value;	
 			}
+			
+		}
+		if(flag==1) {
+			if(sign == "-") {
+				document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+" of " + document.getElementById('city1').value;	
+			}
+			else {
+				document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+" of " + document.getElementById('city2').value;	
+			}
+			
+		}
     }
 	</script>
 </head>
@@ -431,14 +473,14 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-12">
-				<p id="enterdate"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = "" onfocusout= "initializationCheck()"/>
-				in <input id="city1" placeholder="Enter city one" type="text" value="" autocomplete="off" onfocusout= "initializationCheck()"></input></p>
+				<p id="enterdate"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = "" onblur= "initializationCheck(d1)"/>
+				in <input id="city1" placeholder="Enter city one" type="text" value="" autocomplete="off" onblur= "initializationCheck(c1)"></input></p>
 				<input id="date1" type="hidden"></input>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-md-12">
-				<p id="enterdate"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = "" onfocusout=  "initializationCheck()"/>
+				<p id="enterdate"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = "" onblur=  "initializationCheck(d2)"/>
 				in <input id="city2" type="text" value="Pune" autocomplete="off" readonly></input></p>
 				<input id="date2" type="hidden"></input>
 				<!--<input id = "submit" align = "center" type = "button" value ="Submit" onclick = "initializeConversion()" />-->
@@ -452,14 +494,20 @@
 				$('#datenh1').datetimepicker( {
 					format: 'h:mm A ddd DD MMM YYYY',
 					stepping: '30',
-					sideBySide: true
+					sideBySide: true,
+					showClear: true,
+					showTodayButton: true
+
 				});
 				$('#datenh2').datetimepicker( {
 					format: 'h:mm A ddd DD MMM YYYY',
 					stepping: '30',
-					sideBySide: true
+					sideBySide: true,
+					showClear: true,
+					showTodayButton: true
 				});
 			});
+			
 	</script>
 </body>	
 </html>
