@@ -106,7 +106,12 @@
     		console.log("Initializing Conversion");	
     		document.getElementById('datenh2').value="";
     		initializeConversion();
-
+    	}
+    	else if(id == c1 && document.getElementById('datenh1').value.length > 0 && document.getElementById('city1').value.length > 0 && document.getElementById('city2').value.length > 0) {
+    		
+    		console.log("Initializing Conversion");	
+    		document.getElementById('datenh2').value="";
+    		initializeConversion();
     	}
     }
 
@@ -126,7 +131,7 @@
 		console.log("City 1: "+cityOneString);
 	  	console.log("City 2: "+cityTwoString);
 		
-		//Gets the coordinates of both cities
+		//Gets the coordinates of both cities and makes sure that the execution occurs synchronusly 
 		getCoordinates(cityOneString, function() {
    			getCoordinates(cityTwoString);
 		});
@@ -210,6 +215,7 @@
 				//Generates the request URL for getting the offset
 				generateRequestURL(latitude,longitude);
 
+				//Check whether its a callback for function or not 
 				if (typeof callback === 'function')
            		callback();
 
