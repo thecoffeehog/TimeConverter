@@ -127,8 +127,9 @@
 	  	console.log("City 2: "+cityTwoString);
 		
 		//Gets the coordinates of both cities
-		getCoordinates(cityOneString);
-		getCoordinates(cityTwoString);
+		getCoordinates(cityOneString, function() {
+   			getCoordinates(cityTwoString);
+		});
 
     }
 
@@ -182,7 +183,7 @@
 
     }
 
-    function getCoordinates(city) {
+    function getCoordinates(city,callback) {
     	
     	//Logging Statement
     	console.log("Getting co-ordinates of "+city);
@@ -209,8 +210,9 @@
 				//Generates the request URL for getting the offset
 				generateRequestURL(latitude,longitude);
 
-				
-				
+				if (typeof callback === 'function')
+           		callback();
+
 			} else {
 				alert('Geocode was not successful for the following reason: ' + status);
 			}
