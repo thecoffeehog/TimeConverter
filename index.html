@@ -35,6 +35,14 @@
 	var d1 = d1;
 	var d2 = d2;
 	var c1 = c1;
+	var cityOneString;
+	var cityTwoString;
+	var countTest=0;
+
+	$(document).ready(function() {
+		initialize();
+	});
+
 	function initialize() {
 
       //Enables the auto complete for city 1 field
@@ -103,31 +111,8 @@
     }
 
     function initializeConversion() {
-		
-		//When user didn't enter the value of city 1
-		//if(document.getElementById('city1').value.length == 0) {
-			
-		//	alert("Please enter the city whose time you want to check");
-	    //	return;
-		//}
-		//Case when user choose the time of both cities    	
-		//if(document.getElementById('datenh1').value.length >0 && document.getElementById('datenh2').value.length>0 ) {
-	    	
-	    //	alert("Please Choose Date and Time of one of the city");
-	    //	resetFields();
-	    //	return;
-
-	    //}
-
-	    //Case when user didn't choose the time of any city
-		//if (document.getElementById('datenh1').value.length == 0 && document.getElementById('datenh2').value.length == 0 ) {
-			
-		//	alert("Please Choose Date and Time of one of the city");
-	    //	return;
-
-		//}
-
-		//Gets the date from hidden fields and converts it to the format which is required
+	
+		//Gets the date from non hidden fields and converts it to the format which is required
 	    if (document.getElementById('datenh1').value.length == 0) //Finds the non-empty field
 	    	setValueOfDateTwo();
 	    else
@@ -143,7 +128,8 @@
 		
 		//Gets the coordinates of both cities
 		getCoordinates(cityOneString);
-	    getCoordinates(cityTwoString);
+		getCoordinates(cityTwoString);
+
     }
 
     function setValueOfDateOne() {
@@ -170,6 +156,7 @@
     	document.getElementById('date2').value = "";
 
     }
+
     function setValueOfDateTwo() {
     	
     	//Gets the value from non-hidden field
@@ -199,7 +186,7 @@
     	
     	//Logging Statement
     	console.log("Getting co-ordinates of "+city);
-   
+
     	//Gets the coordinates of the city passed
 
 		var address = city;
@@ -221,6 +208,8 @@
 				
 				//Generates the request URL for getting the offset
 				generateRequestURL(latitude,longitude);
+
+				
 				
 			} else {
 				alert('Geocode was not successful for the following reason: ' + status);
@@ -325,7 +314,8 @@
 			document.getElementById('date1').value=0;
 			document.getElementById('date2').value=0;
 		}
-		count++;	
+		count++;
+			
 	}
 
     function sendRequest(url) {
@@ -471,7 +461,7 @@
     }
 	</script>
 </head>
-<body onload="initialize()">
+<body>
 
 	<div class="container">
 		<div class="row">
