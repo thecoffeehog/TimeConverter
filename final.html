@@ -18,6 +18,8 @@
 		<script src="js/bootstrap-datetimepicker.min.js"></script>
 
 		<script type="text/javascript">
+			
+			var apiKey = "AIzaSyB4bGs5nvF2cvmCrTm77fv_Mv0XiKqKORY";
 
 			$(document).ready(function() {
 				initialize();
@@ -44,10 +46,10 @@
 		    	
 		    	if(cityId == '2') {
     			
-    			myDate = new Date();//Takes the system time
+    			var myDate = new Date();//Takes the system time
 
     			//Finds the UNIX timestamp
-    			timestamp = Math.round(myDate.getTime()/1000.0);
+    			var timestamp = Math.round(myDate.getTime()/1000.0);
     			
     			//Converts the date to format: 'h:mm A ddd DD MMM YYYY' using Moment JS
     			myDate = moment.unix(timestamp).format("h:mm A ddd DD MMM YYYY");
@@ -57,7 +59,7 @@
     			//Sets the field value
     			document.getElementById('datenh2').value = myDate;
 
-    		//	initializationCheck('d1');
+    			//	initializationCheck('d1');
     			
     			}
 
@@ -68,19 +70,77 @@
 						//Find the current time of city 1
 						
 						//Get the value from the fields
-	  					cityOneString = document.getElementById('city1').value;
-						cityTwoString = document.getElementById('city2').value; 
+	  					var cityOneString = document.getElementById('city1').value;
+						var cityTwoString = document.getElementById('city2').value; 
 						
 						//Get co-ordinates of both cities
-						//Generate Request URL
-						//Send Request URL
+						var cordinatesOfCityOne = getCoordinates(cityOneString);//Objects consiting of lat and long
+						var cordinatesOfCityTwo = getCoordinates(cityTwoString);
+
+						var timestamp = getTheCurrentTimestamp();
+						
+						//Generate Request URLs
+						var url1 = generateRequestURL(cordinatesOfCityOne,timestamp);
+						var url2 = generateRequestURL(cordinatesOfCityTwo,timestamp);
+						
+						//Send the data and calculate time
+
+						//Send Request URL ad
+
 						//Generate and print result
 					} 
 					else {
 						alert("Please enter the name of city to find the current time!");
 					}
     			}
-		    }    	
+		    }
+		    function getTheCurrentTimestamp() {
+
+				var myDate = new Date();//Takes the system time
+
+				//Finds the UNIX timestamp
+				var timestamp = Math.round(myDate.getTime()/1000.0);
+				
+				//Converts the date to format: 'h:mm A ddd DD MMM YYYY' using Moment JS
+				return timestamp;
+		    }
+		    
+		    function getCoordinates(city) {
+
+		    	var url = "https://maps.googleapis.com/maps/api/geocode/json?address="+city+"&key=" + apiKey;
+		    	response = sendRequest(url);
+		    	
+		    	var coordinates = new Object();
+		    	coordinates = response.results[0].geometry.location;
+		    	
+		    	return coordinates;
+
+		    }
+
+		    function sendRequest(url) {
+		    	
+		    	var xmlHttp = new XMLHttpRequest();
+   				xmlHttp.open( "GET", url, false );
+			    xmlHttp.send( null );
+			    
+			    //Store the result and parse it
+		    	var result = xmlHttp.responseText;
+		    	var jsonObj = JSON.parse(result);
+
+		    	return jsonObj;
+			}
+
+			function generateRequestURL(coordinates, timestamp) {
+
+				var calculatedLocationn = coordinates.lat + "," + coordinates.lng;
+			
+				//Generates the URL using all the calculated parameters
+				var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + calculatedLocationn + "&timestamp=" + timestamp + "&key=" + apiKey;
+				console.log("Generated URL: "+url);
+
+				return url;
+				
+			}
 
 
 		</script>
