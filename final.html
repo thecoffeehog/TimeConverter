@@ -1,0 +1,133 @@
+<html>
+	<head>
+		<title>PaperTrue Time Converter</title>
+
+		<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
+		<link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+
+		<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css" />
+		<link rel="stylesheet" href="css/bootstrap.min.css" />
+		<link rel="stylesheet" href="css/jquery-ui.css">
+		
+		<script src="js/jquery-1.10.2.js"></script>
+		<script src="js/jquery-ui.js"></script>
+		<script src="js/moment.js"></script>
+		<script src="js/transition.js"></script>
+		<script src="js/collapse.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="js/bootstrap-datetimepicker.min.js"></script>
+
+		<script type="text/javascript">
+
+			$(document).ready(function() {
+				initialize();
+
+			//	document.getElementById("city1").addEventListener("blur", function() { initializationCheck('c1'); });
+			//	document.getElementById("datenh1").addEventListener("blur", function() { initializationCheck('d1'); });
+			//	document.getElementById("datenh2").addEventListener("blur", function() { initializationCheck('d2'); });
+				document.getElementById("currenttime1").addEventListener("click", function() { findCurrentTime('1'); });
+				document.getElementById("currenttime2").addEventListener("click", function() { findCurrentTime('2'); });
+			});
+
+			function initialize() {
+
+		      //Enables the auto complete for city 1 field
+		      
+		      autocompleteCityOne = new google.maps.places.Autocomplete( (document.getElementById('city1')), { types: ['(cities)'] });
+		      
+		      google.maps.event.addListener(autocompleteCityOne, 'place_changed', function() {
+		      });
+
+		    }
+
+		    function findCurrentTime(cityId) {
+		    	
+		    	if(cityId == '2') {
+    			
+    			myDate = new Date();//Takes the system time
+
+    			//Finds the UNIX timestamp
+    			timestamp = Math.round(myDate.getTime()/1000.0);
+    			
+    			//Converts the date to format: 'h:mm A ddd DD MMM YYYY' using Moment JS
+    			myDate = moment.unix(timestamp).format("h:mm A ddd DD MMM YYYY");
+    			
+    			console.log("Current Date and Time of City 2: "+myDate);
+    			
+    			//Sets the field value
+    			document.getElementById('datenh2').value = myDate;
+
+    		//	initializationCheck('d1');
+    			
+    			}
+
+    			if(cityId == '1') {
+					
+					if( document.getElementById('city1').value.length > 0 ) {
+						
+						//Find the current time of city 1
+						
+						//Get the value from the fields
+	  					cityOneString = document.getElementById('city1').value;
+						cityTwoString = document.getElementById('city2').value; 
+						
+						//Get co-ordinates of both cities
+						//Generate Request URL
+						//Send Request URL
+						//Generate and print result
+					} 
+					else {
+						alert("Please enter the name of city to find the current time!");
+					}
+    			}
+		    }    	
+
+
+		</script>
+
+	</head>
+
+	<body>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<p id="enterdate1"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = ""/><button type="button" id="currenttime1" >CT</button>
+				in <input id="city1" placeholder="Enter city one" type="text" value="" autocomplete="off"></input></p>
+				<input id="date1" type="hidden"></input>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<p id="enterdate2"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = ""/><button type="button" id="currenttime2">CT</button>
+				in <input id="city2" type="text" value="Pune, Maharashtra, India" autocomplete="off" readonly></input></p>
+				<input id="date2" type="hidden"></input>
+				<p id = "converted"></p>
+			</div>
+		</div>
+	</div>
+	<script>
+			//JQuery code for the date time picker
+			$(function () {	
+				$('#datenh1').datetimepicker( {
+					useCurrent: false,
+					format: 'h:mm A ddd DD MMM YYYY',
+					stepping: '30',
+					sideBySide: true,
+					showClear: true,
+					//showTodayButton: true
+
+				});
+				$('#datenh2').datetimepicker( {
+					format: 'h:mm A ddd DD MMM YYYY',
+					stepping: '30',
+					sideBySide: true,
+					showClear: true,
+					//showTodayButton: true
+				});
+			});			
+	</script>
+	</body>
+
+
+</html>

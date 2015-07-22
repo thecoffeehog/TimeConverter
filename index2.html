@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<title>PaperTrue Time Converter</title>
+
+	<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css" />
+	<link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+	<link rel="stylesheet" href="css/jquery-ui.css">
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
+	<script src="js/jquery-1.10.2.js"></script>
+	<script src="js/jquery-ui.js"></script>
+	<script src="js/moment.js"></script>
+	<script src="js/transition.js"></script>
+	<script src="js/collapse.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/bootstrap-datetimepicker.min.js"></script>
+	<script>
+
+		
+
+	var geocoder;
+	var count  = 0;
+	var flag = -1;
+	var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun","Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	var weekNames = ["Sun", "Mon" , "Tue" , "Wed" , "Thu" , "Fri", "Sat"];
+	var autocompleteCityOne;
+	var statusOfCity = [0,0];
+	statusOfCity[0]=0;
+	statusOfCity[1]=0;
+	var count2 = 0;
+	var url1;
+	var url2;
+	var cityOneString;
+	var cityTwoString;
+	var countTest=0;
+
+	$(document).ready(function() {
+		initialize();
+
+		document.getElementById("city1").addEventListener("blur", function() { initializationCheck('c1'); });
+		document.getElementById("datenh1").addEventListener("blur", function() { initializationCheck('d1'); });
+		document.getElementById("datenh2").addEventListener("blur", function() { initializationCheck('d2'); });
+		document.getElementById("currenttime1").addEventListener("click", function() { findCurrentTime('1') });
+		document.getElementById("currenttime2").addEventListener("click", function() { findCurrentTime('2') });
+	});
+
+	function initialize() {
+
+      //Enables the auto complete for city 1 field
+      
+      autocompleteCityOne = new google.maps.places.Autocomplete( (document.getElementById('city1')), { types: ['(cities)'] });
+      
+      google.maps.event.addListener(autocompleteCityOne, 'place_changed', function() {
+      });
+
+    }
+
+    function findCurrentTime(city) {
+    	
+    	if(city == '2') {
+    			//format: 'h:mm A ddd DD MMM YYYY',
+    			myDate = new Date();
+    			timestamp = Math.round(myDate.getTime()/1000.0);
+    			myDate = moment.unix(timestamp).format("h:mm A ddd DD MMM YYYY");
+    			console.log("Current Date and Time of City 2: "+myDate);
+    			document.getElementById('datenh2').value = myDate;
+    	}
+    	if(city == '1') {
+    		console.log("City1: " + document.getElementById('city1').value.length );
+    		if(document.getElementById('city1').value.length > 0 ) {
+    			alert("Working");
+    		}
+
+    		else {
+    			alert("Please enter the name of city to get the current time");
+    		}
+    	}
+
+    }
+    function resetFields() {
+    	document.getElementById('datenh1').value = "";
+    	document.getElementById('datenh2').value = "";
+    }
+
+    function initializationCheck(id) {
+    	if(document.getElementById('city1').value.length > 0 && 
+    		(document.getElementById('datenh1').value.length > 0 || document.getElementById('datenh2').value.length > 0)) {
+    		//Case when user enters the date-time of city 2 and date-time of city 1 is blank
+    		if( document.getElementById('datenh2').value.length > 0 && document.getElementById('datenh1').value.length == 0) {
+    			id=0;
+    			console.log("Case 1");
+    			initializeConversion();
+    		}
+
+    		//Case when user enters the date-time of city 1 and date-time of city 2 is blank
+    		else if(document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length == 0) {
+    			id=0;
+    			console.log("Case 2");
+    			initializeConversion();	
+    		}
+    		
+    		//Case when all fields are already full and user changes the value of city 1
+    		else if (id == 'c1' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+    			console.log("Case 3");
+    			document.getElementById('datenh1').value = "";
+    			initializeConversion();
+    		}
+
+    		//Case when all fields are already full and user changes the value of date-time of city 1
+			else if (id == 'd1' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+				console.log("Case 4");
+    			document.getElementById('datenh2').value = "";
+    			initializeConversion();
+    		}    			
+
+    		//Case when all fields are already full and user changes the value of date-time of city 2
+			else if (id == 'd2' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+    			console.log("Case 5");
+    			document.getElementById('datenh1').value = "";
+    			initializeConversion();
+    		}    		
+    	}
+    }
+
+    function initializeConversion() {		
+		//Gets the date from non hidden fields and converts it to the format which is required
+	    if (document.getElementById('datenh1').value.length == 0) //Finds the non-empty field
+	    	setValueOfDateTwo();
+	    else
+	    	setValueOfDateOne();
+		
+		//Get the value from the fields
+	    cityOneString = document.getElementById('city1').value;
+		cityTwoString = document.getElementById('city2').value; 
+		
+		//Logging Statements
+		console.log("City 1: "+cityOneString);
+	  	console.log("City 2: "+cityTwoString);
+		
+		//Gets the coordinates of both cities and makes sure that the execution occurs synchronusly 
+		getCoordinates(cityOneString, function() {
+   			getCoordinates(cityTwoString);
+		});
+
+    }
+
+    function setValueOfDateOne() {
+
+    	//Gets the value from non-hidden field
+    	datenh1 = document.getElementById('datenh1').value;
+    	
+    	//Logging Statement
+    	console.log("Choosed Date 1:"+datenh1);
+
+    	//Converts the date to h:mm a ddd DD MMM YYYY format for further conversion 
+    	var momentDate1= moment( datenh1, "h:mm a ddd DD MMM YYYY" );
+    	
+    	//Converts the date to DD/MM/YYYY h:mm PM format for further conversion to JavaScript date
+    	date1 = momentDate1.month()+1 + "/" + momentDate1.date() + "/" + momentDate1.year() +" "+ momentDate1.hour() +":"+momentDate1.minutes();
+    	
+    	//Logging Statement
+    	console.log("Converted Date 1:"+date1);
+    	
+    	//Sets the value of hidden field to the converted value from non-hidden field
+    	document.getElementById('date1').value=date1;
+    	
+    	//Sets the value of date2 as empty, because both the date fields cannot have dates
+    	document.getElementById('date2').value = "";
+
+    }
+
+    function setValueOfDateTwo() {
+    	
+    	//Gets the value from non-hidden field
+    	datenh2 = document.getElementById('datenh2').value;
+
+    	//Logging Statement
+    	console.log("Choosed Date 2:"+datenh2);
+
+    	//Converts the date to h:mm a ddd DD MMM YYYY format for further conversion 
+    	var momentDate2= moment( datenh2, "h:mm a ddd DD MMM YYYY" );
+
+    	//Converts the date to DD/MM/YYYY h:mm PM format for further conversion to JavaScript Date
+    	date2 = momentDate2.month()+1 + "/" + momentDate2.date() + "/" + momentDate2.year() +" "+ momentDate2.hour() +":"+momentDate2.minutes() ;
+    	
+    	//Logging Statement
+    	console.log("Converted Date 2:"+date2);    	
+    	
+    	//Sets the value of hidden field to the converted value from non-hidden field
+    	document.getElementById('date2').value=date2;
+    	
+    	//Sets the value of date1 as empty, because both the date fields cannot have dates
+    	document.getElementById('date1').value = "";
+
+    }
+
+    function getCoordinates(city,callback) {
+    	
+    	//Logging Statement
+    	console.log("Getting co-ordinates of "+city);
+
+    	//Gets the coordinates of the city passed
+
+		var address = city;
+		
+		geocoder = new google.maps.Geocoder();
+
+		//Gets the co-ordinates of the city from Google Places Geocoding API
+		geocoder.geocode( { 'address': address}, function(results, status) {
+
+			if (status == google.maps.GeocoderStatus.OK) {
+				
+				//Logging Statement
+				console.log("Latitude: " + results[0].geometry.location.A);
+				console.log("Longitude: " + results[0].geometry.location.F);
+
+				//Stores the co-ordinates
+				latitude=results[0].geometry.location.A;
+				longitude=results[0].geometry.location.F;
+				
+				//Generates the request URL for getting the offset
+				generateRequestURL(latitude,longitude);
+
+				//Check whether its a callback for function or not 
+				if (typeof callback == 'function')
+           		callback();
+
+			} else {
+				alert('Geocode was not successful for the following reason: ' + status);
+			}
+
+		});	
+	}
+
+	function generateRequestURL(latitude, longitude) {
+
+		var timestamp;
+		var apiKey = "AIzaSyB4bGs5nvF2cvmCrTm77fv_Mv0XiKqKORY";
+
+
+		//Does this check only on the first call for  generating URL 
+		if(count == 0) {
+
+			//Finds the empty date field and sets the required flags and status
+
+			if( document.getElementById('date1').value.length == 0 ) {
+					flag = 1;
+					statusOfCity[1] = 1;
+			}
+			else {
+
+					flag=0;
+					statusOfCity[0] = 1;
+			}
+
+		}
+		
+		if(flag == 0 ) {
+				
+				//Makes a JavaScript date
+				var myDate = new Date(document.getElementById('date1').value);
+				
+				//Gets the Unix/Epoch timestamp
+				timestamp = Math.round(myDate.getTime()/1000.0);
+
+				//Logging statement
+				console.log("Date: "+ document.getElementById('date1').value + "Timestamp: "+timestamp);
+				
+				var calculatedLocation = latitude + "," + longitude;
+				
+				//Generates the URL using all the calculated parameters
+				var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + calculatedLocation + "&timestamp=" + timestamp + "&key=" + apiKey;
+				
+				//Logging statement
+				console.log("Count: "+count);
+
+				if(statusOfCity[count] == 1) {
+					url1=url;
+				}
+				else {
+					url2=url;
+				}
+			}
+
+		if(flag == 1 ) {
+
+				//Makes a JavaScript date
+				var myDate = new Date(document.getElementById('date2').value);
+				
+				//Gets the Unix/Epoch timestamp
+				timestamp = Math.round(myDate.getTime()/1000.0);
+				
+				//Logging statement
+				console.log("Date: "+ document.getElementById('date2').value + "Timestamp: "+timestamp);
+				
+				var calculatedLocation = latitude + "," + longitude;
+				
+				//Generates the URL using all the calculated parameters
+				var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + calculatedLocation + "&timestamp=" + timestamp + "&key=" + apiKey;
+				
+				//Logging statement
+				console.log("Count: "+count);
+
+				if(statusOfCity[count] == 1) {
+					url1=url;
+				}
+				else {
+					url2=url;
+				}
+
+			}
+
+		if(count==1) {
+			
+			//Logging statement
+			console.log("Entered City URL: "+url1);
+    		console.log("Blank City URL: "+url2);
+
+			getConvertedTime(timestamp, url1, url2, flag);
+			
+			//Reset flag and count 
+			count=-1;
+			flag=-1;
+			
+			//Reset field status
+			statusOfCity[0]=0;
+			statusOfCity[1]=0;
+			
+			document.getElementById('date1').value=0;
+			document.getElementById('date2').value=0;
+		}
+		count++;
+			
+	}
+
+    function sendRequest(url) {
+    	
+
+    	var Httpreq = new XMLHttpRequest(); // a new request
+    	
+    	//Open GET request
+    	Httpreq.open("GET",url,false);
+    	Httpreq.send(null);
+    	
+    	//Store the result and parse it
+    	var result = Httpreq.responseText;
+    	var jsonObj = JSON.parse(result);
+
+    	return jsonObj;
+    }
+
+    function addZero(i) {
+		//TO add zero add prefix position
+		if (i < 10) {
+			i = "0" + i;
+		}
+		return i;
+
+	}
+
+    function getConvertedTime(timestamp, url1, url2, flag) {
+    	//url1 is the entered cities url and url2 is the url of non-entered city
+    	jsonObjOfEntered = sendRequest(url1);
+    	jsonObjOfNonEntered = sendRequest(url2);
+    	
+    	//Logging Statement
+    	console.log("Entered City URL: "+url1);
+    	console.log("Blank City URL: "+url2);
+    	
+    	//Calculate the offset
+    	var cityOneOffset = jsonObjOfEntered.dstOffset + jsonObjOfEntered.rawOffset; 
+    	
+    	//Logging Statement
+    	console.log("City One Offset:"+cityOneOffset);
+
+    	//Converted EPOCH timestamp
+    	var convertedTimeStamp = timestamp + jsonObjOfNonEntered.dstOffset + jsonObjOfNonEntered.rawOffset - cityOneOffset;
+    	var convertedTime = new Date(convertedTimeStamp*1000);
+
+    	//Logging Statement
+    	console.log("Time:"+convertedTime);
+		
+		var suffix = "AM";
+		var hours = convertedTime.getHours(); //JS function to get hours from a string of date and time
+
+		//Calculates the meridians
+		if ( hours > 12) {
+			suffix = "PM";
+			hours = hours-12;
+		}
+		if(hours == 0) {
+			hours = 12;
+		}
+
+		//Converts the time to h:mm pm DDD dd MMM yyyy format
+		var fullConvertedTime = ( hours+ ":" + addZero(convertedTime.getMinutes() ) + " " +
+			suffix + " " + weekNames [ convertedTime.getDay() ] + " " + addZero(convertedTime.getDate() ) + " " + monthNames [ convertedTime.getMonth() ] + " " + convertedTime.getFullYear()  
+			);
+
+		//Logging Statements
+		console.log("Flag: "+flag);
+		console.log("Full Converted Time: "+fullConvertedTime);
+		
+		//Sets the value with calculated time
+		if(flag == 0) {
+			
+			document.getElementById('datenh2').value = fullConvertedTime;
+			
+			display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag);//To display the offset difference in human readable fashion	
+			
+			cityOneOffset=0;
+			flag=-1;
+		}
+		else if (flag == 1) {
+			
+			document.getElementById('datenh1').value = fullConvertedTime;
+			
+			display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag);
+			
+			cityOneOffset=0;
+			flag=-1;
+		}
+    }
+
+    function display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag) {
+    		
+		var diffInOffset = (jsonObjOfNonEntered.dstOffset + jsonObjOfNonEntered.rawOffset - cityOneOffset)/3600;
+		
+		//Logging Statement
+		console.log("diffInOffset"+diffInOffset );		
+		
+		var fractionOfDiffInOffset = diffInOffset % 1;//Stores the fractional part of diff in offset
+		var suffixZero= "";	
+		
+		//Converts the fractional part to time format
+		if ( fractionOfDiffInOffset == 0 ) {
+			var newFractionOfDiffInOffset = fractionOfDiffInOffset;
+		}
+		else if ( fractionOfDiffInOffset == -0.5 || fractionOfDiffInOffset == 0.5  ) {
+			suffixZero = "0";
+			var newFractionOfDiffInOffset = 0.30;
+		}
+		else if ( fractionOfDiffInOffset == -0.25 || fractionOfDiffInOffset == 0.25 ) {
+			var newFractionOfDiffInOffset = 0.15;
+		}
+		else if ( fractionOfDiffInOffset == -0.75 || fractionOfDiffInOffset == 0.75 ) {
+			var newFractionOfDiffInOffset = 0.45;				
+		}
+
+		//Displays the diff in this format : Pune is +4:30 of London
+		
+		if(diffInOffset<0) {
+			var sign = "-";
+		}
+
+		diffInOffset = Math.abs(diffInOffset) - Math.abs(fractionOfDiffInOffset) + newFractionOfDiffInOffset;
+		if(flag==0)  {
+			if(sign == "-") {
+				document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+" of " + document.getElementById('city2').value;		
+			}
+			else {
+				document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+ " of " + document.getElementById('city1').value;	
+			}
+			
+		}
+		if(flag==1) {
+			if(sign == "-") {
+				document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+" of " + document.getElementById('city1').value;	
+			}
+			else {
+				document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+													+" of " + document.getElementById('city2').value;	
+			}
+			
+		}
+    }
+	</script>
+</head>
+<body>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<p id="enterdate1"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = ""/><button type="button" id="currenttime1" >CT</button>
+				in <input id="city1" placeholder="Enter city one" type="text" value="" autocomplete="off"></input></p>
+				<input id="date1" type="hidden"></input>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<p id="enterdate2"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = ""/><button type="button" id="currenttime2">CT</button>
+				in <input id="city2" type="text" value="Pune, Maharashtra, India" autocomplete="off" readonly></input></p>
+				<input id="date2" type="hidden"></input>
+				<!--<input id = "submit" align = "center" type = "button" value ="Submit" onclick = "initializeConversion()" />-->
+				<p id = "converted"></p>
+			</div>
+		</div>
+	</div>
+	<script>
+			//JQuery code for the date time picker
+			$(function () {	
+				$('#datenh1').datetimepicker( {
+					useCurrent: false,
+					format: 'h:mm A ddd DD MMM YYYY',
+					stepping: '30',
+					sideBySide: true,
+					showClear: true,
+					//showTodayButton: true
+
+				});
+				$('#datenh2').datetimepicker( {
+					format: 'h:mm A ddd DD MMM YYYY',
+					stepping: '30',
+					sideBySide: true,
+					showClear: true,
+					//showTodayButton: true
+				});
+			});
+
+			
+	</script>
+</body>	
+</html>
