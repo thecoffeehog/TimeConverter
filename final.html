@@ -24,9 +24,9 @@
 			$(document).ready(function() {
 				initialize();
 
-			//	document.getElementById("city1").addEventListener("blur", function() { initializationCheck('c1'); });
-			//	document.getElementById("datenh1").addEventListener("blur", function() { initializationCheck('d1'); });
-			//	document.getElementById("datenh2").addEventListener("blur", function() { initializationCheck('d2'); });
+				document.getElementById("city1").addEventListener("blur", function() { initializationCheck('c1'); });
+				document.getElementById("datenh1").addEventListener("blur", function() { initializationCheck('d1'); });
+				document.getElementById("datenh2").addEventListener("blur", function() { initializationCheck('d2'); });
 				document.getElementById("currenttime1").addEventListener("click", function() { findCurrentTime('1'); });
 				document.getElementById("currenttime2").addEventListener("click", function() { findCurrentTime('2'); });
 			});
@@ -77,23 +77,26 @@
 						var cordinatesOfCityOne = getCoordinates(cityOneString);//Objects consiting of lat and long
 						var cordinatesOfCityTwo = getCoordinates(cityTwoString);
 
-						var timestamp = getTheCurrentTimestamp();
+						var timestampOfKnown = getTheCurrentTimestamp();
 						
 						//Generate Request URLs
-						var url1 = generateRequestURL(cordinatesOfCityOne,timestamp);
-						var url2 = generateRequestURL(cordinatesOfCityTwo,timestamp);
+						var url1 = generateRequestURL(cordinatesOfCityOne,timestampOfKnown);
+						var url2 = generateRequestURL(cordinatesOfCityTwo,timestampOfKnown);
 						
-						//Send the data and calculate time
+						//Send the URL and recieve the offsets
+						var jsonResultOfToFind = sendRequest(url1);
+						var jsonResultOfKnown = sendRequest(url2);
+						//Setting the date to the field
+						document.getElementById('datenh1').value = getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown );
 
-						//Send Request URL ad
-
-						//Generate and print result
 					} 
+
 					else {
 						alert("Please enter the name of city to find the current time!");
 					}
     			}
 		    }
+
 		    function getTheCurrentTimestamp() {
 
 				var myDate = new Date();//Takes the system time
@@ -105,7 +108,7 @@
 				return timestamp;
 		    }
 		    
-		    function getCoordinates(city) {
+			function getCoordinates(city) {
 
 		    	var url = "https://maps.googleapis.com/maps/api/geocode/json?address="+city+"&key=" + apiKey;
 		    	response = sendRequest(url);
@@ -118,7 +121,7 @@
 		    }
 
 		    function sendRequest(url) {
-		    	
+		    	console.log("Sending URL: "+url);
 		    	var xmlHttp = new XMLHttpRequest();
    				xmlHttp.open( "GET", url, false );
 			    xmlHttp.send( null );
@@ -133,6 +136,7 @@
 			function generateRequestURL(coordinates, timestamp) {
 
 				var calculatedLocationn = coordinates.lat + "," + coordinates.lng;
+
 			
 				//Generates the URL using all the calculated parameters
 				var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + calculatedLocationn + "&timestamp=" + timestamp + "&key=" + apiKey;
@@ -141,6 +145,24 @@
 				return url;
 				
 			}
+
+			function getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown ) {
+				
+				//Calculate the offset
+    			var knownCityOffset = jsonResultOfKnown.dstOffset + jsonResultOfKnown.rawOffset;
+				
+				//Converted EPOCH timestamp
+    			var convertedTimeStamp = timestampOfKnown + jsonResultOfToFind.dstOffset + jsonResultOfToFind.rawOffset - knownCityOffset;
+
+    			var convertedTime = moment.unix(convertedTimeStamp).format("h:mm A ddd DD MMM YYYY");
+
+    			console.log("Converted Time Stamp: "+convertedTimeStamp); 
+    			console.log("Converted Time: "+convertedTime);
+
+    			return convertedTime;
+
+			}
+			
 
 
 		</script>
