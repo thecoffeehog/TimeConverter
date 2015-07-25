@@ -42,6 +42,131 @@
 
 		    }
 
+		   function initializationCheck(id) {
+			if(document.getElementById('city1').value.length > 0 && 
+				(document.getElementById('datenh1').value.length > 0 || document.getElementById('datenh2').value.length > 0)) {
+					//Case when user enters the date-time of city 2 and date-time of city 1 is blank
+					if( document.getElementById('datenh2').value.length > 0 && document.getElementById('datenh1').value.length == 0) {
+						id=0;
+						console.log("Case 1");
+						initializeConversion();
+					}
+
+					//Case when user enters the date-time of city 1 and date-time of city 2 is blank
+					else if(document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length == 0) {
+						id=0;
+						console.log("Case 2");
+						initializeConversion();	
+					}
+					
+					//Case when all fields are already full and user changes the value of city 1
+					else if (id == 'c1' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+						console.log("Case 3");
+						document.getElementById('datenh1').value = "";
+						initializeConversion();
+					}
+
+					//Case when all fields are already full and user changes the value of date-time of city 1
+					else if (id == 'd1' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+						console.log("Case 4");
+						document.getElementById('datenh2').value = "";
+						initializeConversion();
+					}    			
+
+					//Case when all fields are already full and user changes the value of date-time of city 2
+					else if (id == 'd2' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+						console.log("Case 5");
+						document.getElementById('datenh1').value = "";
+						initializeConversion();
+						}    		
+				}
+    		}		
+
+    		function initializeConversion() {
+		    	
+		    	//Gets the date from non hidden fields and converts it to the format which is required
+
+			    if (document.getElementById('datenh1').value.length == 0) { //Finds the non-empty field 
+			    	//Gets the value from non-hidden field
+					datenh2 = document.getElementById('datenh2').value;
+
+					//Converts the date to h:mm a ddd DD MMM YYYY format for further conversion 
+					var momentDate2= moment( datenh2, "h:mm a ddd DD MMM YYYY" );
+
+					//Converts the date to DD/MM/YYYY h:mm PM format for further conversion to JavaScript Date
+					date2 = momentDate2.month()+1 + "/" + momentDate2.date() + "/" + momentDate2.year() +" "+ momentDate2.hour() +":"+momentDate2.minutes() ;
+					document.getElementById('date2').value=date2;
+					document.getElementById('date1').value= "";
+
+			    }	 
+			    else {
+
+			    	datenh1 = document.getElementById('datenh1').value;
+
+			    	var momentDate1= moment( datenh1, "h:mm a ddd DD MMM YYYY" );
+    	
+    				date1 = momentDate1.month()+1 + "/" + momentDate1.date() + "/" + momentDate1.year() +" "+ momentDate1.hour() +":"+momentDate1.minutes();
+    				document.getElementById('date1').value=date1;
+    				console.log("Hi!!!"+date1);
+    				document.getElementById('date2').value = "";
+
+			    }
+			    	
+				
+				//Get the value from the fields
+			    cityOneString = document.getElementById('city1').value;
+				cityTwoString = document.getElementById('city2').value; 
+				
+				//Get co-ordinates of both cities
+				var cordinatesOfCityOne = getCoordinates(cityOneString);//Objects consiting of lat and long
+				var cordinatesOfCityTwo = getCoordinates(cityTwoString);
+
+				if(document.getElementById('date1').value.length == 0)
+					var knownDateTime=document.getElementById('date2').value;
+				else if(document.getElementById('date2').value.length == 0)
+					var knownDateTime= document.getElementById('date1').value;
+
+				//Makes a JavaScript date
+				var myDate = new Date(knownDateTime);
+				//Gets the Unix/Epoch timestamp
+				var timestampOfKnown = Math.round(myDate.getTime()/1000.0);
+				console.log("Time Stamp of Known: "+timestampOfKnown);
+				
+				//Generate Request URLs
+				var url1 = generateRequestURL(cordinatesOfCityOne,timestampOfKnown);
+				console.log("URL 1: "+url1);
+				var url2 = generateRequestURL(cordinatesOfCityTwo,timestampOfKnown);
+				//TO BE IMPROVED
+				if(document.getElementById('date1').value.length == 0) {
+					var knownCity = 2;
+					knownUrl = url2;
+					unknownUrl = url1;
+				}
+				else if(document.getElementById('date2').value.length == 0) {
+					var knownCity = 1;
+					knownUrl = url1;
+					unknownUrl = url2;
+				}
+				if(knownCity == 1) {
+					document.getElementById('datenh2').value = timeOfUnknown;
+				}
+				//Send the URL and recieve the offsets
+				console.log("unknownUrl"+unknownUrl);
+				console.log("knownUrl"+knownUrl);
+
+				var jsonResultOfToFind = sendRequest(unknownUrl);
+				var jsonResultOfKnown = sendRequest(knownUrl);
+				//Setting the date to the field
+				//document.getElementById('datenh1').value = getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown );
+				var timeOfUnknown = getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown );
+				console.log("Time of unknown: "+timeOfUnknown);
+
+				if(knownCity == 1) 
+					document.getElementById('datenh2').value = timeOfUnknown;
+				else 
+					document.getElementById('datenh1').value = timeOfUnknown;
+    		}	
+
 		    function findCurrentTime(cityId) {
 		    	
 		    	if(cityId == '2') {
@@ -155,6 +280,7 @@
     			var convertedTimeStamp = timestampOfKnown + jsonResultOfToFind.dstOffset + jsonResultOfToFind.rawOffset - knownCityOffset;
 
     			var convertedTime = moment.unix(convertedTimeStamp).format("h:mm A ddd DD MMM YYYY");
+    			var convertedTimeJS = new Date(convertedTimeStamp*1000);
 
     			console.log("Converted Time Stamp: "+convertedTimeStamp); 
     			console.log("Converted Time: "+convertedTime);
