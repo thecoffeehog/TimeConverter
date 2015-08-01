@@ -348,7 +348,14 @@
 						
 					}
     			}
-				
+				function clearTimeFields() {
+					document.getElementById('datenh1').value = "";
+					document.getElementById('date1').value = "";
+					document.getElementById('datenh2').value = "";
+					document.getElementById('date2').value = "";
+					document.getElementById('converted').innerHTML = "";
+					initializationCheck('d1');
+				}
 				function displayDifference(jsonResultOfKnown,jsonResultOfToFind,knownCityOffset) {
 
 					var diffInOffset = (jsonResultOfToFind.dstOffset + jsonResultOfToFind.rawOffset - knownCityOffset)/3600;
@@ -415,15 +422,16 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-12">
-					<p id="enterdate1"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = ""/><button type="button" id="currenttime1" >CT</button>
+					<p id="enterdate1"> Time <input id = "datenh1" placeholder="Choose time in city one" type = "text" value = ""/><button id="currenttime1" class="glyphicon glyphicon-screenshot"></button> <button id="cleardt1" onclick=" clearTimeFields()" class="glyphicon glyphicon-trash" ></button>
 					in <input id="city1" placeholder="Enter city one" type="text" value="" autocomplete="off"></input></p>
 					<input id="date1" type="hidden"></input>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<p id="enterdate2"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = ""/><button type="button" id="currenttime2">CT</button>
-					in <input id="city2" type="text" value="Pune, Maharashtra, India" autocomplete="off" readonly></input></p>
+					<p id="enterdate2"> Time <input id = "datenh2" placeholder="Choose time in Pune" type = "text" value = ""/><button id="currenttime2" class="glyphicon glyphicon-screenshot"></button>
+					<button id="cleardt2" onclick=" clearTimeFields()" class="glyphicon glyphicon-trash" ></button>
+					in <input id="city2" type="text" value="Pune, Maharashtra, India" autocomplete="off" readonly></input></p>	
 					<input id="date2" type="hidden"></input>
 					<p id = "converted"></p>
 				</div>
