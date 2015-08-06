@@ -1,0 +1,393 @@
+
+var apiKey = "AIzaSyB4bGs5nvF2cvmCrTm77fv_Mv0XiKqKORY";
+var knownCity;
+
+$(document).ready(function() {
+initialize();
+
+document.getElementById("city1").addEventListener("blur", function() { initializationCheck('c1'); });
+document.getElementById("datenh1").addEventListener("blur", function() { initializationCheck('d1'); });
+document.getElementById("datenh2").addEventListener("blur", function() { initializationCheck('d2'); });
+document.getElementById("currenttime1").addEventListener("click", function() { findCurrentTime('1'); });
+document.getElementById("currenttime2").addEventListener("click", function() { findCurrentTime('2'); });
+});
+
+function initialize() {
+
+	//Enables the auto complete for city 1 field
+
+	autocompleteCityOne = new google.maps.places.Autocomplete( (document.getElementById('city1')), { types: ['(cities)'] });
+
+	google.maps.event.addListener(autocompleteCityOne, 'place_changed', function() {
+		var event = new Event('blur');
+
+	// Dispatch it.
+	document.getElementById("city1").dispatchEvent(event);
+	});
+
+}
+
+function initializationCheck(id) {
+	if(document.getElementById('city1').value.length > 0 && 
+	(document.getElementById('datenh1').value.length > 0 || document.getElementById('datenh2').value.length > 0)) {
+		//Case when user enters the date-time of city 2 and date-time of city 1 is blank
+		if( document.getElementById('datenh2').value.length > 0 && document.getElementById('datenh1').value.length == 0) {
+			id=0;
+		//	console.log("Case 1");
+			initializeConversion();
+		}
+
+		//Case when user enters the date-time of city 1 and date-time of city 2 is blank
+		else if(document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length == 0) {
+			id=0;
+		//	console.log("Case 2");
+			initializeConversion();	
+		}
+		
+		//Case when all fields are already full and user changes the value of city 1
+		else if (id == 'c1' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+			//console.log("Case 3");
+			document.getElementById('datenh1').value = "";
+			initializeConversion();
+		}
+
+		//Case when all fields are already full and user changes the value of date-time of city 1
+		else if (id == 'd1' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+		//	console.log("Case 4");
+			document.getElementById('datenh2').value = "";
+			initializeConversion();
+		}    			
+
+		//Case when all fields are already full and user changes the value of date-time of city 2
+		else if (id == 'd2' && document.getElementById('datenh1').value.length > 0 && document.getElementById('datenh2').value.length > 0) {
+		//	console.log("Case 5");
+			document.getElementById('datenh1').value = "";
+			initializeConversion();
+			}    		
+	}
+}		
+
+function initializeConversion() {
+
+	//Gets the date from non hidden fields and converts it to the format which is required
+
+	if (document.getElementById('datenh1').value.length == 0) { //Finds the non-empty field 
+		//Gets the value from non-hidden field
+		datenh2 = document.getElementById('datenh2').value;
+
+		//Converts the date to h:mm a ddd DD MMM YYYY format for further conversion 
+		var momentDate2= moment( datenh2, "h:mm a ddd DD MMM YYYY" );
+
+		//Converts the date to DD/MM/YYYY h:mm PM format for further conversion to JavaScript Date
+		date2 = momentDate2.month()+1 + "/" + momentDate2.date() + "/" + momentDate2.year() +" "+ momentDate2.hour() +":"+momentDate2.minutes() ;
+		document.getElementById('date2').value=date2;
+		document.getElementById('date1').value= "";
+
+	}	 
+	else {
+
+		datenh1 = document.getElementById('datenh1').value;
+
+		var momentDate1= moment( datenh1, "h:mm a ddd DD MMM YYYY" );
+
+		date1 = momentDate1.month()+1 + "/" + momentDate1.date() + "/" + momentDate1.year() +" "+ momentDate1.hour() +":"+momentDate1.minutes();
+		document.getElementById('date1').value=date1;
+		//console.log("Hi!!!"+date1);
+		document.getElementById('date2').value = "";
+
+	}
+		
+
+	//Get the value from the fields
+	cityOneString = document.getElementById('city1').value;
+	cityTwoString = document.getElementById('city2').value; 
+
+	//Get co-ordinates of both cities
+	var cordinatesOfCityOne = getCoordinates(cityOneString);//Objects consiting of lat and long
+	var cordinatesOfCityTwo = getCoordinates(cityTwoString);
+
+	if(document.getElementById('date1').value.length == 0)
+		var knownDateTime=document.getElementById('date2').value;
+	else if(document.getElementById('date2').value.length == 0)
+		var knownDateTime= document.getElementById('date1').value;
+
+	//Makes a JavaScript date
+	var myDate = new Date(knownDateTime);
+	//Gets the Unix/Epoch timestamp
+	var timestampOfKnown = Math.round(myDate.getTime()/1000.0);
+	//console.log("Time Stamp of Known: "+timestampOfKnown);
+
+	//Generate Request URLs
+	var url1 = generateRequestURL(cordinatesOfCityOne,timestampOfKnown);
+	//	console.log("URL 1: "+url1);
+	var url2 = generateRequestURL(cordinatesOfCityTwo,timestampOfKnown);
+	//TO BE IMPROVED
+	if(document.getElementById('date1').value.length == 0) {
+		knownCity = 2;
+		knownUrl = url2;
+		unknownUrl = url1;
+	}
+	else if(document.getElementById('date2').value.length == 0) {
+		knownCity = 1;
+		knownUrl = url1;
+		unknownUrl = url2;
+	}
+	//Send the URL and recieve the offsets
+	//console.log("unknownUrl"+unknownUrl);
+	//console.log("knownUrl"+knownUrl);
+
+	var jsonResultOfToFind = sendRequest(unknownUrl);
+	var jsonResultOfKnown = sendRequest(knownUrl);
+	//Setting the date to the field
+	//document.getElementById('datenh1').value = getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown );
+	var timeOfUnknown = getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown );
+	//	console.log("Time of unknown: "+timeOfUnknown);
+	displayDifference(jsonResultOfKnown,jsonResultOfToFind,knownCityOffset,knownCity);
+	if(knownCity == 1) 
+		document.getElementById('datenh2').value = timeOfUnknown;
+	else 
+		document.getElementById('datenh1').value = timeOfUnknown;
+}	
+
+function findCurrentTime(cityId) {
+
+	if(cityId == '2') {
+
+	var myDate = new Date();//Takes the system time
+
+	//Finds the UNIX timestamp
+	var timestamp = Math.round(myDate.getTime()/1000.0);
+
+	//Converts the date to format: 'h:mm A ddd DD MMM YYYY' using Moment JS
+	myDate = moment.unix(timestamp).format("h:mm A ddd DD MMM YYYY");
+
+	//		console.log("Current Date and Time of City 2: "+myDate);
+
+	//Sets the field value
+	document.getElementById('datenh2').value = myDate;
+
+	initializationCheck('d2');
+
+
+
+}
+
+if(cityId == '1') {
+	
+	if( document.getElementById('city1').value.length > 0 ) {
+		
+		//Find the current time of city 1
+		
+		//Get the value from the fields
+			var cityOneString = document.getElementById('city1').value;
+		var cityTwoString = document.getElementById('city2').value; 
+		
+
+		//Get co-ordinates of both cities
+		var cordinatesOfCityOne = getCoordinates(cityOneString);//Objects consiting of lat and long
+		var cordinatesOfCityTwo = getCoordinates(cityTwoString);
+
+		var timestampOfKnown = getTheCurrentTimestamp();
+		
+		//Generate Request URLs
+		var url1 = generateRequestURL(cordinatesOfCityOne,timestampOfKnown);
+		var url2 = generateRequestURL(cordinatesOfCityTwo,timestampOfKnown);
+		
+		//Send the URL and recieve the offsets
+		var jsonResultOfToFind = sendRequest(url1);
+		var jsonResultOfKnown = sendRequest(url2);
+		//Setting the date to the field
+		document.getElementById('datenh1').value = getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown );
+		initializationCheck('d1');
+
+	} 
+
+	else {
+		alert("Please enter the name of city to find the current time!");
+	}
+}
+}
+
+function getTheCurrentTimestamp() {
+
+	var myDate = new Date();//Takes the system time
+
+	//Finds the UNIX timestamp
+	var timestamp = Math.round(myDate.getTime()/1000.0);
+
+	//Converts the date to format: 'h:mm A ddd DD MMM YYYY' using Moment JS
+	return timestamp;
+}
+
+function getCoordinates(city) {
+//	console.log(city);
+	var url = "https://maps.googleapis.com/maps/api/geocode/json?address="+city+"&key=" + apiKey;
+	response = sendRequest(url);
+
+	var coordinates = new Object();
+	coordinates = response.results[0].geometry.location;
+
+	return coordinates;
+
+}
+
+function sendRequest(url) {
+	//	    	console.log("Sending URL: "+url);
+	var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( "GET", url, false );
+	xmlHttp.send( null );
+
+	//Store the result and parse it
+	var result = xmlHttp.responseText;
+	var jsonObj = JSON.parse(result);
+
+	return jsonObj;
+}
+
+function generateRequestURL(coordinates, timestamp) {
+
+	var calculatedLocationn = coordinates.lat + "," + coordinates.lng;
+
+
+	//Generates the URL using all the calculated parameters
+	var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + calculatedLocationn + "&timestamp=" + timestamp + "&key=" + apiKey;
+	//		console.log("Generated URL: "+url);
+
+	return url;
+
+}
+
+function getConvertedTime(jsonResultOfToFind, jsonResultOfKnown, timestampOfKnown ) {
+
+	//Calculate the offset
+	knownCityOffset = jsonResultOfKnown.dstOffset + jsonResultOfKnown.rawOffset;
+
+	//Converted EPOCH timestamp
+	var convertedTimeStamp = timestampOfKnown + jsonResultOfToFind.dstOffset + jsonResultOfToFind.rawOffset - knownCityOffset;
+
+	var convertedTime = moment.unix(convertedTimeStamp).format("h:mm A ddd DD MMM YYYY");
+	var convertedTimeJS = new Date(convertedTimeStamp*1000);
+
+	//		console.log("Converted Time Stamp: "+convertedTimeStamp); 
+	//		console.log("Converted Time: "+convertedTime);
+
+	return convertedTime;
+
+	}
+	function display(jsonObjOfEntered,jsonObjOfNonEntered,cityOneOffset,flag) {
+
+	var diffInOffset = (jsonObjOfNonEntered.dstOffset + jsonObjOfNonEntered.rawOffset - cityOneOffset)/3600;
+
+
+
+	var fractionOfDiffInOffset = diffInOffset % 1;//Stores the fractional part of diff in offset
+	var suffixZero= "";	
+
+	//Converts the fractional part to time format
+	if ( fractionOfDiffInOffset == 0 ) {
+		var newFractionOfDiffInOffset = fractionOfDiffInOffset;
+	}
+	else if ( fractionOfDiffInOffset == -0.5 || fractionOfDiffInOffset == 0.5  ) {
+		suffixZero = "0";
+		var newFractionOfDiffInOffset = 0.30;
+	}
+	else if ( fractionOfDiffInOffset == -0.25 || fractionOfDiffInOffset == 0.25 ) {
+		var newFractionOfDiffInOffset = 0.15;
+	}
+	else if ( fractionOfDiffInOffset == -0.75 || fractionOfDiffInOffset == 0.75 ) {
+		var newFractionOfDiffInOffset = 0.45;				
+	}
+
+	//Displays the diff in this format : Pune is +4:30 of London
+
+	if(diffInOffset<0) {
+		var sign = "-";
+	}
+
+	diffInOffset = Math.abs(diffInOffset) - Math.abs(fractionOfDiffInOffset) + newFractionOfDiffInOffset;
+	if(flag==0)  {
+		if(sign == "-") {
+			document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+" of " + document.getElementById('city2').value;		
+		}
+		else {
+			document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+ " of " + document.getElementById('city1').value;	
+		}
+		
+	}
+	if(flag==1) {
+		if(sign == "-") {
+			document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+" of " + document.getElementById('city1').value;	
+		}
+		else {
+			document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+" of " + document.getElementById('city2').value;	
+		}
+		
+	}
+}
+function clearTimeFields() {
+	document.getElementById('datenh1').value = "";
+	document.getElementById('date1').value = "";
+	document.getElementById('datenh2').value = "";
+	document.getElementById('date2').value = "";
+	document.getElementById('converted').innerHTML = "";
+	initializationCheck('d1');
+}
+function displayDifference(jsonResultOfKnown,jsonResultOfToFind,knownCityOffset) {
+
+	var diffInOffset = (jsonResultOfToFind.dstOffset + jsonResultOfToFind.rawOffset - knownCityOffset)/3600;
+
+	//Logging Statement
+	//console.log("diffInOffset"+diffInOffset );		
+
+	var fractionOfDiffInOffset = diffInOffset % 1;//Stores the fractional part of diff in offset
+	var suffixZero= "";	
+
+	//Converts the fractional part to time format
+	if ( fractionOfDiffInOffset == 0 ) {
+		var newFractionOfDiffInOffset = fractionOfDiffInOffset;
+	}
+	else if ( fractionOfDiffInOffset == -0.5 || fractionOfDiffInOffset == 0.5  ) {
+		suffixZero = "0";
+		var newFractionOfDiffInOffset = 0.30;
+	}
+	else if ( fractionOfDiffInOffset == -0.25 || fractionOfDiffInOffset == 0.25 ) {
+		var newFractionOfDiffInOffset = 0.15;
+	}
+	else if ( fractionOfDiffInOffset == -0.75 || fractionOfDiffInOffset == 0.75 ) {
+		var newFractionOfDiffInOffset = 0.45;				
+	}
+
+	//Displays the diff in this format : Pune is +4:30 of London
+
+	if(diffInOffset<0) {
+		var sign = "-";
+	}
+
+	diffInOffset = Math.abs(diffInOffset) - Math.abs(fractionOfDiffInOffset) + newFractionOfDiffInOffset;
+	if(knownCity==1)  {
+		if(sign == "-") {
+			document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+" of " + document.getElementById('city2').value;		
+		}
+		else {
+			document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+ " of " + document.getElementById('city1').value;	
+		}
+		
+	}
+	if(knownCity==2) {
+		if(sign == "-") {
+			document.getElementById('converted').innerHTML = document.getElementById('city2').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+" of " + document.getElementById('city1').value;	
+		}
+		else {
+			document.getElementById('converted').innerHTML = document.getElementById('city1').value +" is " +"+"+Math.abs(diffInOffset)+suffixZero 
+												+" of " + document.getElementById('city2').value;	
+		}
+		
+	}
+}
